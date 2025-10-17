@@ -8,9 +8,5 @@ public class App
     {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("com.example");
 
-        OperationConsooleListener consooleListener=context.getBean(OperationConsooleListener.class);
-        consooleListener.start();
-        consooleListener.listenUpdates();
-        consooleListener.end();
     }
 }
