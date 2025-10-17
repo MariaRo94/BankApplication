@@ -10,7 +10,7 @@ import java.util.Scanner;
 @Component
 public class DepositAccountProcessor implements OperationCommandProcessor {
     private final Scanner scanner;
-    private AccountService accountService;
+    private final AccountService accountService;
 
     public DepositAccountProcessor(Scanner scanner, AccountService accountService) {
         this.scanner = scanner;
