@@ -1,11 +1,14 @@
 package com.example.operations.processors;
 
 import com.example.account.AccountService;
+import com.example.operations.ConsoleOperationType;
 import com.example.operations.OperationCommandProcessor;
 import com.example.user.UserService;
+import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 
+@Component
 public class CreateAccountProcessor implements OperationCommandProcessor {
 
     private final Scanner scanner;
@@ -29,4 +32,11 @@ public class CreateAccountProcessor implements OperationCommandProcessor {
         user.getAccountList().add(account);
         System.out.println("New account created with id=%s for user=%s".formatted(account.getId(), user.getLogin()));
     }
+
+    @Override
+    public ConsoleOperationType getOperationType() {
+        return ConsoleOperationType.ACCOUNT_CREATE;
+    }
+
+
 }

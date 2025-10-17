@@ -1,26 +1,29 @@
 package com.example.account;
 
 import com.example.user.User;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
+@Service
 public class AccountService {
 
     private final Map<Integer, Account> accountMap;
     private int idCounter;
+    private final AccountProperties accountProperties;
 
-    public AccountService() {
+    public AccountService(AccountProperties accountProperties) {
+        this.accountProperties = accountProperties;
         this.accountMap = new HashMap<>();
         this.idCounter = 0;
     }
 
     public Account createAccount(User user) {
         idCounter++;
-        Account account =new Account(idCounter, user.getId(), 0);
+        Account account =new Account(idCounter, user.getId(), accountProperties.getDefaultAmount());
         accountMap.put(account.getId(), account);
         return account;
     }
@@ -44,4 +47,57 @@ public class AccountService {
             }
             account.setMoneyAmount(account.getMoneyAmount() + moneyToDeposit);
     }
+
+    public void withDrawFromAccounts(int accountId, int amountToWithdraw) {
+        var account = findAccountById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(accountId)));
+        if (amountToWithdraw <= 0){
+            throw new IllegalArgumentException("Cannot withdraw not positive amount =%s".formatted(amountToWithdraw));
+        }
+        if (account.getMoneyAmount() < amountToWithdraw){
+            throw new IllegalArgumentException(("Cannot withdraw from account=%s moneyAmount =%s " +
+                    "attempted withdraw =%s").formatted(accountId, amountToWithdraw));
+        }
+        account.setMoneyAmount(account.getMoneyAmount() - amountToWithdraw);
+    }
+
+    public Account closeAccount(int accountId) {
+        var accountToRemove = findAccountById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(accountId)));
+        List <Account >accountList = getAllAccounts(accountToRemove.getUserId());
+        if(accountList.size() ==1){
+            throw new IllegalArgumentException(
+                    "Cannot close the only one account for user: id=%s".formatted(accountToRemove.getUserId()));
+        }
+        Account accountToDeposit = accountList.stream()
+                .filter(it -> it.getId()!=accountId)
+                .findFirst()
+                .orElseThrow();
+        accountToDeposit.setMoneyAmount(accountToDeposit.getMoneyAmount() + accountToRemove.getMoneyAmount());
+        accountMap.remove(accountId);
+
+        return accountToRemove;
+    }
+
+    public void transfer(int fromAccountId, int toAccountId, int amountToTransfer) {
+        var accountFrom = findAccountById(fromAccountId)
+                .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(fromAccountId)));
+        var accountToDeposit = findAccountById(toAccountId)
+                .orElseThrow(() -> new IllegalArgumentException("No such account: id=%s".formatted(toAccountId)));
+        if (amountToTransfer <= 0){
+            throw new IllegalArgumentException("Cannot transfer not positive amount =%s".formatted(amountToTransfer));
+        }
+        if (accountFrom.getMoneyAmount() < amountToTransfer){
+            throw new IllegalArgumentException(("Cannot transfer from account=%s moneyAmount =%s " +
+                    "attempted transfer =%s").formatted(fromAccountId, amountToTransfer));
+        }
+
+        int totalAmountToDeposit = accountToDeposit.getUserId() != accountFrom.getUserId() ?
+                (int)(amountToTransfer* (1 - accountProperties.getTransferCommission())) : amountToTransfer;
+
+
+        accountFrom.setMoneyAmount(accountFrom.getMoneyAmount() - amountToTransfer);
+        accountToDeposit.setMoneyAmount(accountToDeposit.getMoneyAmount() + totalAmountToDeposit);
+    }
 }
+

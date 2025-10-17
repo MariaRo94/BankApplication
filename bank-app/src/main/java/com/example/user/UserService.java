@@ -1,6 +1,7 @@
 package com.example.user;
 
 import com.example.account.AccountService;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+@Service
 public class UserService {
 
     private final Map<Integer, User> userMap;

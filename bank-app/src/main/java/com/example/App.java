@@ -7,7 +7,10 @@ public class App
     public static void main( String[] args )
     {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("com.example");
-        context.getBean(OperationConsooleListener.class)
-                .listenUpdate();
+
+        OperationConsooleListener consooleListener=context.getBean(OperationConsooleListener.class);
+        consooleListener.start();
+        consooleListener.listenUpdates();
+        consooleListener.end();
     }
 }
