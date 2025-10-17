@@ -43,8 +43,11 @@ public class OperationConsooleListener {
 
 
     public void listenUpdates() {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             var operationType = listenNextOperation();
+            if(operationType == null){
+                return;
+            }
             processNextOperation(operationType);
         }
     }
@@ -53,7 +56,7 @@ public class OperationConsooleListener {
         System.out.println("Please type next operation: \n");
         printAllAvailableOperations();
         System.out.println();
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             var nextOperation = scanner.nextLine();
             try {
                 return ConsoleOperationType.valueOf(nextOperation);
@@ -63,6 +66,7 @@ public class OperationConsooleListener {
 
             }
         }
+        return null;
     }
 
     private void printAllAvailableOperations() {
